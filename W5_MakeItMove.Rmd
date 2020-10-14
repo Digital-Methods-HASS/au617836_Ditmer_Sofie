@@ -156,7 +156,9 @@ Q6 Can you make the axes' labels and units more readable? Consider expanding the
 Animation 1:
 I have added readable labels for the x- and y-axis as well as a more readable title of the legend using the labs() function. I have also disabled the scientific notation both from the x-axis and the legend using the labels = comma option inside the scale_x_log10 function to get the GDP per capita in whole numbers and the option(scipen = 999) to get the population estimate in the legend in whole numbers (see below)
 ```{r}
-anim <- ggplot(gapminder, aes(gdpPercap, lifeExp, size = pop, options(scipen = 999))) +
+options(scipen=999) # Disabling scientific notation
+
+anim <- ggplot(gapminder, aes(gdpPercap, lifeExp, size = pop)) +
   geom_point() +
   scale_x_log10(labels = comma) +
   labs(x = "GDP per capita", y = "Life Expectancy", size = "Population")
@@ -170,7 +172,9 @@ anim + transition_states(year,
 Animation 2:
 Same procedure as above.
 ```{r}
-anim2 <- ggplot(gapminder, aes(gdpPercap, lifeExp, size = pop, options(scipen = 999))) +
+options(scipen=999) # Disabling scientific notation
+
+anim2 <- ggplot(gapminder, aes(gdpPercap, lifeExp, size = pop)) +
   geom_point() +
   scale_x_log10(labels = comma) +
   labs(x = "GDP per capita", y = "Life Expectancy") +
