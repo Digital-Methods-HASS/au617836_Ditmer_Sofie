@@ -1,0 +1,122 @@
+---
+title: "Homework (week 8)"
+author: "Sofie Ditmer"
+date: "29/10/2020"
+output: html_document
+---
+
+TASK: Use the rvest library to scrape data of your interest. I have chosen to scrape data about Covid19 from the website: https://www.worldometers.info/coronavirus/#countries
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Loading packages
+```{r}
+library(rvest) # web-scraping
+library(dplyr) # data-wrangling
+library(tidyr) # data transformation
+library(stringr) # string manipulation
+library(janitor) # cleaning headers
+library(ggplot2) # visualization
+```
+
+Scrape data of interest using the read_html() function from the rvest package.
+```{r}
+url <- "https://www.worldometers.info/coronavirus/#countries"
+
+# scrape the website
+url_html <- read_html(url)
+```
+
+Extracting the HTML table through the particular tag for the specific table I want to scrape. I found the tag by looking at the website source code (F12) and finding the table's x-path code. Below I load the html table into a list. 
+```{r}
+whole_table <- url_html %>% 
+ html_nodes(xpath = '//*[@id="main_table_countries_today"]') %>%
+ html_table()
+whole_table
+```
+
+Turning the list into a dataframe: taking the HTML table and ulisting it
+```{r}
+new_table <- do.call(cbind,unlist(whole_table, recursive = FALSE)) 
+head(new_table)
+```
+
+Turning the table into a data frame so it is easier to work with
+```{r}
+data <- as.data.frame(new_table)
+```
+
+CLeaning
+```{r}
+# Removing the first column since it did not contain anything
+clean_data <- data[,-1] 
+
+# Removing the plus sign from the columns where they appear
+clean_data[, 3] <- gsub("\\+", "", clean_data[, 3])
+clean_data[, 5] <- gsub("\\+", "", clean_data[, 5]) 
+clean_data[, 7] <- gsub("\\+", "", clean_data[, 7]) 
+clean_data[, 7] <- gsub("\\+", "", clean_data[, 7]) 
+
+# Replacing commas with nothing
+clean_data[, c(2:14)] <- lapply(clean_data[, c(2:14)], gsub, pattern = ",", replacement = "")
+
+# Changing the class of multiple columns to numeric 
+for (i in 2:14){
+   clean_data[,i] <- as.numeric(clean_data[,i])
+ }
+
+```
+
+Visualizations
+```{r}
+options(scipen=999) # Disabling scientific notation
+
+# Looking at the total number of Covid cases for each continent
+subset(clean_data, Continent == c("North America", "South America", "Asia", "Europe", "Africa", "Australia/Oceania")) %>% 
+	ggplot(aes(x = Continent, y = TotalCases )) +
+	geom_bar(stat = "identity") +
+	labs(x = "Continent", y = "Total Number of Covid19 Cases")
+
+# Looking at the number of deaths for each continent
+subset(clean_data, Continent == c("North America", "South America", "Asia", "Europe", "Africa", "Australia/Oceania")) %>% 
+	ggplot(aes(x = Continent, y = TotalDeaths)) +
+	geom_bar(stat = "identity") +
+	labs(x = "Continent", y = "Total Number of Covid19 Deaths")
+
+# Looking at the number of tests for each continent
+subset(clean_data, Continent == c("North America", "South America", "Asia", "Europe", "Africa", "Australia/Oceania")) %>% 
+	ggplot(aes(x = TotalTests, y = Continent)) +
+	geom_bar(stat = "identity") +
+	labs(x = "Total Number of Tests", y = "Continent")
+
+# Looking at the number of people recovered
+subset(clean_data, Continent == c("North America", "South America", "Asia", "Europe", "Africa", "Australia/Oceania")) %>% 
+	ggplot(aes(x = Continent, y = TotalRecovered )) +
+	geom_bar(stat = "identity") +
+	labs(x = "Continent", y = "Total Number of Recovered Patients")
+
+# Zooming in on the U.S. and Europa
+USA_Europe <- clean_data %>% 
+	filter(`Country,Other` == "USA" | `Country,Other` == "Europe")
+
+# Number of cases
+USA_Europe %>% 
+	ggplot(aes(x = `Country,Other`, y = TotalCases)) +
+	geom_bar(stat = "identity") +
+	labs(x = " ", y = "Total Number of Covid19 Cases")
+# Pretty interesting that a country has almost the same number of cases as an entire continent...
+
+# Number of deaths
+USA_Europe %>% 
+	ggplot(aes(x = `Country,Other`, y = TotalDeaths)) +
+	geom_bar(stat = "identity") +
+	labs(x = " ", y = "Total Number of Deaths")
+
+# Number of recovered patients
+USA_Europe %>% 
+	ggplot(aes(x = `Country,Other`, y = TotalRecovered)) +
+	geom_bar(stat = "identity") +
+	labs(x = " ", y = "Total Number of Recovered Patients")
+```
