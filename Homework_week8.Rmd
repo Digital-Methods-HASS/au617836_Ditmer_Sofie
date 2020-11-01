@@ -5,7 +5,7 @@ date: "29/10/2020"
 output: html_document
 ---
 
-TASK: Use the rvest library to scrape data of your interest. I have chosen to scrape data about Covid19 from the website: https://www.worldometers.info/coronavirus/#countries
+TASK: Use the rvest library to scrape data of your interest. I have chosen to scrape data about Covid19 from this website: https://www.worldometers.info/coronavirus/#countries
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
